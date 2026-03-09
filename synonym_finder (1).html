@@ -1,0 +1,546 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Swap Helper 🔄</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Fredoka+One&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --sky: #e0f4ff;
+    --blue: #3b9ede;
+    --blue-dark: #2276b5;
+    --yellow: #ffe566;
+    --yellow-dark: #f5c800;
+    --green: #5ecb8a;
+    --green-dark: #3aaa68;
+    --orange: #ff8c42;
+    --purple: #a78bfa;
+    --pink: #f472b6;
+    --card1: #fff7e0;
+    --card2: #e8f9f0;
+    --card3: #e8f0ff;
+    --card4: #fce8f4;
+    --text: #1e293b;
+    --muted: #64748b;
+    --radius: 20px;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Nunito', sans-serif;
+    background: linear-gradient(160deg, #dbeeff 0%, #f0fdf4 50%, #fef9e7 100%);
+    min-height: 100vh;
+    padding: 24px 16px 48px;
+    color: var(--text);
+  }
+
+  .page {
+    max-width: 680px;
+    margin: 0 auto;
+  }
+
+  /* Header */
+  .header {
+    text-align: center;
+    margin-bottom: 32px;
+    animation: popIn 0.6s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .header .emoji-big {
+    font-size: 56px;
+    display: block;
+    margin-bottom: 8px;
+    animation: bounce 2s ease-in-out infinite;
+  }
+
+  @keyframes bounce {
+    0%, 100% { transform: translateY(0); }
+    50% { transform: translateY(-8px); }
+  }
+
+  .header h1 {
+    font-family: 'Fredoka One', cursive;
+    font-size: 2.4rem;
+    color: var(--blue-dark);
+    line-height: 1.1;
+    letter-spacing: 0.5px;
+  }
+
+  .header p {
+    font-size: 1.1rem;
+    color: var(--muted);
+    margin-top: 8px;
+    font-weight: 600;
+  }
+
+  @keyframes popIn {
+    from { opacity: 0; transform: scale(0.8) translateY(-20px); }
+    to { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  /* Search box */
+  .search-card {
+    background: white;
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    box-shadow: 0 4px 24px rgba(59,158,222,0.13);
+    margin-bottom: 28px;
+    border: 3px solid var(--blue);
+    animation: popIn 0.6s 0.1s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .search-label {
+    font-size: 1.25rem;
+    font-weight: 800;
+    color: var(--blue-dark);
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .input-row {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  input[type="text"] {
+    flex: 1;
+    min-width: 180px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 1.3rem;
+    font-weight: 700;
+    padding: 14px 20px;
+    border: 3px solid #cbd5e1;
+    border-radius: 14px;
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    color: var(--text);
+    background: #f8fafc;
+  }
+
+  input[type="text"]:focus {
+    border-color: var(--blue);
+    box-shadow: 0 0 0 4px rgba(59,158,222,0.15);
+    background: white;
+  }
+
+  input[type="text"]::placeholder {
+    color: #a0aec0;
+    font-weight: 600;
+  }
+
+  .btn-find {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.2rem;
+    padding: 14px 28px;
+    background: var(--yellow);
+    border: 3px solid var(--yellow-dark);
+    border-radius: 14px;
+    cursor: pointer;
+    color: #7a5800;
+    transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+    box-shadow: 0 4px 0 var(--yellow-dark);
+    white-space: nowrap;
+  }
+
+  .btn-find:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--yellow-dark);
+  }
+
+  .btn-find:active:not(:disabled) {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--yellow-dark);
+  }
+
+  .btn-find:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  /* Loading */
+  .loading {
+    text-align: center;
+    padding: 40px;
+    display: none;
+  }
+
+  .loading.visible { display: block; }
+
+  .spinner {
+    width: 56px;
+    height: 56px;
+    border: 6px solid #e2e8f0;
+    border-top-color: var(--blue);
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin: 0 auto 16px;
+  }
+
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  .loading p {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--muted);
+  }
+
+  /* Results */
+  .results { display: none; }
+  .results.visible { display: block; }
+
+  .results-heading {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.5rem;
+    color: var(--blue-dark);
+    margin-bottom: 16px;
+    text-align: center;
+  }
+
+  .results-heading span {
+    background: var(--yellow);
+    padding: 2px 12px;
+    border-radius: 8px;
+    color: #7a5800;
+  }
+
+  .cards-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    margin-bottom: 20px;
+  }
+
+  @media (max-width: 480px) {
+    .cards-grid { grid-template-columns: 1fr; }
+    .header h1 { font-size: 1.9rem; }
+  }
+
+  .word-card {
+    border-radius: var(--radius);
+    padding: 20px;
+    border: 3px solid rgba(0,0,0,0.08);
+    position: relative;
+    animation: cardPop 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+
+  .word-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.10);
+  }
+
+  .word-card:nth-child(1) { background: var(--card1); animation-delay: 0.05s; }
+  .word-card:nth-child(2) { background: var(--card2); animation-delay: 0.10s; }
+  .word-card:nth-child(3) { background: var(--card3); animation-delay: 0.15s; }
+  .word-card:nth-child(4) { background: var(--card4); animation-delay: 0.20s; }
+
+  @keyframes cardPop {
+    from { opacity: 0; transform: scale(0.85) translateY(16px); }
+    to   { opacity: 1; transform: scale(1) translateY(0); }
+  }
+
+  .card-word {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.6rem;
+    color: var(--blue-dark);
+    margin-bottom: 6px;
+    line-height: 1.1;
+  }
+
+  .card-def {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #475569;
+    margin-bottom: 10px;
+    line-height: 1.4;
+  }
+
+  .card-example {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #64748b;
+    background: rgba(255,255,255,0.6);
+    border-radius: 10px;
+    padding: 8px 10px;
+    line-height: 1.4;
+    margin-bottom: 10px;
+    font-style: italic;
+  }
+
+  .btn-speak {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.88rem;
+    font-weight: 800;
+    padding: 7px 14px;
+    background: white;
+    border: 2px solid rgba(0,0,0,0.12);
+    border-radius: 10px;
+    cursor: pointer;
+    color: var(--blue-dark);
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .btn-speak:hover {
+    background: var(--blue);
+    color: white;
+    border-color: var(--blue-dark);
+    transform: scale(1.04);
+  }
+
+  /* Read all button */
+  .btn-read-all {
+    width: 100%;
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.15rem;
+    padding: 16px;
+    background: var(--green);
+    border: 3px solid var(--green-dark);
+    border-radius: 14px;
+    cursor: pointer;
+    color: white;
+    box-shadow: 0 4px 0 var(--green-dark);
+    transition: transform 0.15s, box-shadow 0.15s;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+  }
+
+  .btn-read-all:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--green-dark);
+  }
+
+  .btn-read-all:active {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0 var(--green-dark);
+  }
+
+  /* Error */
+  .error-box {
+    background: #fff1f2;
+    border: 3px solid #fda4af;
+    border-radius: var(--radius);
+    padding: 20px 24px;
+    text-align: center;
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #be123c;
+    display: none;
+  }
+
+  .error-box.visible { display: block; }
+
+  /* Try another */
+  .try-another {
+    text-align: center;
+    margin-top: 4px;
+  }
+
+  .btn-try {
+    font-family: 'Nunito', sans-serif;
+    font-size: 1rem;
+    font-weight: 800;
+    padding: 10px 24px;
+    background: white;
+    border: 3px solid var(--blue);
+    border-radius: 12px;
+    cursor: pointer;
+    color: var(--blue-dark);
+    transition: background 0.15s, transform 0.1s;
+  }
+
+  .btn-try:hover {
+    background: var(--sky);
+    transform: scale(1.03);
+  }
+
+  /* Tip box */
+  .tip-box {
+    background: white;
+    border: 3px dashed var(--blue);
+    border-radius: var(--radius);
+    padding: 18px 22px;
+    margin-top: 28px;
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--muted);
+    text-align: center;
+    animation: popIn 0.6s 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+
+  .tip-box strong { color: var(--blue-dark); }
+</style>
+</head>
+<body>
+<div class="page">
+
+  <div class="header">
+    <span class="emoji-big">🔄</span>
+    <h1>Word Swap Helper</h1>
+    <p>Find other words that mean the same thing!</p>
+  </div>
+
+  <div class="search-card">
+    <div class="search-label">🔍 Type a word to look up:</div>
+    <div class="input-row">
+      <input type="text" id="wordInput" placeholder="e.g. happy, big, run..." maxlength="40"
+             onkeydown="if(event.key==='Enter') findSynonyms()" />
+      <button class="btn-find" onclick="findSynonyms()" id="findBtn">Find Words! ✨</button>
+    </div>
+  </div>
+
+  <div class="loading" id="loading">
+    <div class="spinner"></div>
+    <p>Looking up your word... 🔍</p>
+  </div>
+
+  <div class="error-box" id="errorBox"></div>
+
+  <div class="results" id="results">
+    <div class="results-heading" id="resultsHeading"></div>
+    <button class="btn-read-all" onclick="readAll()" id="readAllBtn">
+      🔊 Read Everything Aloud
+    </button>
+    <div class="cards-grid" id="cardsGrid"></div>
+    <div class="try-another">
+      <button class="btn-try" onclick="tryAnother()">🔄 Try Another Word</button>
+    </div>
+  </div>
+
+  <div class="tip-box">
+    💡 <strong>Tip:</strong> Pick a synonym that fits your sentence. Not every word will work in every place!
+  </div>
+
+</div>
+
+<script>
+  let currentSynonyms = [];
+
+  async function findSynonyms() {
+    const word = document.getElementById('wordInput').value.trim();
+    if (!word) return;
+
+    setLoading(true);
+    hideAll();
+
+    try {
+      const response = await fetch("https://api.anthropic.com/v1/messages", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          model: "claude-sonnet-4-20250514",
+          max_tokens: 1000,
+          messages: [{
+            role: "user",
+            content: `Give me exactly 4 synonyms for the word "${word}" suitable for middle school students with reading difficulties.
+
+Return ONLY a JSON array with exactly 4 objects. No other text, no markdown, no backticks.
+
+Each object must have:
+- "word": the synonym (one word, simple)
+- "definition": a simple 1-sentence definition using very easy words (max 12 words)
+- "example": a short example sentence using the synonym (max 12 words, fun and relatable for middle schoolers)
+
+Example format:
+[{"word":"glad","definition":"Feeling happy about something good.","example":"She was glad when school ended early."},...]`
+          }]
+        })
+      });
+
+      const data = await response.json();
+      const text = data.content.map(c => c.text || '').join('');
+      const clean = text.replace(/```json|```/g, '').trim();
+      const synonyms = JSON.parse(clean);
+
+      currentSynonyms = synonyms;
+      showResults(word, synonyms);
+    } catch (err) {
+      showError("Hmm, something went wrong. Try again! 😊");
+    }
+
+    setLoading(false);
+  }
+
+  function showResults(word, synonyms) {
+    document.getElementById('resultsHeading').innerHTML =
+      `Other words for <span>${word}</span>:`;
+
+    const grid = document.getElementById('cardsGrid');
+    grid.innerHTML = '';
+
+    synonyms.forEach((s, i) => {
+      const card = document.createElement('div');
+      card.className = 'word-card';
+      card.innerHTML = `
+        <div class="card-word">${s.word}</div>
+        <div class="card-def">${s.definition}</div>
+        <div class="card-example">"${s.example}"</div>
+        <button class="btn-speak" onclick="speak('${escapeForAttr(s.word)}. ${escapeForAttr(s.definition)} Here is an example: ${escapeForAttr(s.example)}')">
+          🔊 Read this card
+        </button>
+      `;
+      grid.appendChild(card);
+    });
+
+    document.getElementById('results').classList.add('visible');
+  }
+
+  function escapeForAttr(str) {
+    return str.replace(/'/g, "\\'").replace(/"/g, '&quot;');
+  }
+
+  function speak(text) {
+    window.speechSynthesis.cancel();
+    const utt = new SpeechSynthesisUtterance(text);
+    utt.rate = 0.88;
+    utt.pitch = 1.05;
+    window.speechSynthesis.speak(utt);
+  }
+
+  function readAll() {
+    if (!currentSynonyms.length) return;
+    const word = document.getElementById('wordInput').value.trim();
+    let fullText = `Other words for ${word}. `;
+    currentSynonyms.forEach(s => {
+      fullText += `${s.word}. ${s.definition} Example: ${s.example}. `;
+    });
+    speak(fullText);
+  }
+
+  function tryAnother() {
+    window.speechSynthesis.cancel();
+    document.getElementById('wordInput').value = '';
+    hideAll();
+    document.getElementById('wordInput').focus();
+  }
+
+  function setLoading(on) {
+    document.getElementById('loading').classList.toggle('visible', on);
+    document.getElementById('findBtn').disabled = on;
+  }
+
+  function hideAll() {
+    document.getElementById('results').classList.remove('visible');
+    document.getElementById('errorBox').classList.remove('visible');
+  }
+
+  function showError(msg) {
+    const box = document.getElementById('errorBox');
+    box.textContent = msg;
+    box.classList.add('visible');
+  }
+
+  document.getElementById('wordInput').focus();
+</script>
+</body>
+</html>
